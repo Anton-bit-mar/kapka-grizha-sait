@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 260">
+<defs><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b59be0"/><stop offset="1" stop-color="#7a62b3"/></linearGradient></defs>
+<g fill="none" stroke="#6f8f55" stroke-width="2.6" stroke-linecap="round">
+<path d="M70 258 C68 200 66 140 62 40"/><path d="M70 258 C76 200 88 150 104 70"/><path d="M70 258 C62 210 48 160 32 92"/>
+<path d="M66 200 C54 190 46 176 44 160" stroke-width="2"/><path d="M74 210 C86 200 94 186 96 172" stroke-width="2"/></g>
+<g fill="#8fae73"><path d="M66 200 C54 196 44 184 42 168 C52 174 62 186 66 200Z"/><path d="M74 212 C88 206 96 194 98 178 C88 184 78 196 74 212Z"/></g>
+<g fill="url(#b)">
+<g transform="translate(62 40)"><ellipse cx="0" cy="0" rx="4" ry="7"/><ellipse cx="-6" cy="12" rx="4.5" ry="7.5" transform="rotate(-28 -6 12)"/><ellipse cx="6" cy="12" rx="4.5" ry="7.5" transform="rotate(28 6 12)"/><ellipse cx="-6" cy="26" rx="5" ry="8" transform="rotate(-28 -6 26)"/><ellipse cx="6" cy="26" rx="5" ry="8" transform="rotate(28 6 26)"/><ellipse cx="-6" cy="41" rx="5" ry="8" transform="rotate(-28 -6 41)"/><ellipse cx="6" cy="41" rx="5" ry="8" transform="rotate(28 6 41)"/><ellipse cx="-5" cy="57" rx="4.5" ry="7.5" transform="rotate(-28 -5 57)"/><ellipse cx="5" cy="57" rx="4.5" ry="7.5" transform="rotate(28 5 57)"/></g>
+<g transform="translate(104 70) rotate(14)"><ellipse cx="0" cy="0" rx="3.6" ry="6"/><ellipse cx="-5" cy="11" rx="4" ry="7" transform="rotate(-28 -5 11)"/><ellipse cx="5" cy="11" rx="4" ry="7" transform="rotate(28 5 11)"/><ellipse cx="-5" cy="24" rx="4.4" ry="7" transform="rotate(-28 -5 24)"/><ellipse cx="5" cy="24" rx="4.4" ry="7" transform="rotate(28 5 24)"/><ellipse cx="-4" cy="37" rx="4" ry="6.5" transform="rotate(-28 -4 37)"/><ellipse cx="4" cy="37" rx="4" ry="6.5" transform="rotate(28 4 37)"/></g>
+<g transform="translate(32 92) rotate(-16)"><ellipse cx="0" cy="0" rx="3.4" ry="5.6"/><ellipse cx="-5" cy="10" rx="4" ry="6.5" transform="rotate(-28 -5 10)"/><ellipse cx="5" cy="10" rx="4" ry="6.5" transform="rotate(28 5 10)"/><ellipse cx="-4" cy="22" rx="4" ry="6.5" transform="rotate(-28 -4 22)"/><ellipse cx="4" cy="22" rx="4" ry="6.5" transform="rotate(28 4 22)"/></g>
+</g></svg>

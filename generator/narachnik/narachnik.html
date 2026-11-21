@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="bg"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Marck+Script&family=Onest:wght@400;500;600&display=swap">
+<style>
+@page { size: A5; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 400 10.5pt/1.55 "Onest", sans-serif; color: #3a2a22; }
+.pg { width: 148mm; height: 210mm; padding: 16mm 15mm; page-break-after: always; position: relative; background: #f8f2ea; overflow: hidden; }
+.pg:last-child { page-break-after: auto; }
+h1, h2 { font-family: "Cormorant Garamond", serif; font-weight: 600; line-height: 1.15; margin: 0 0 4mm; }
+h1 { font-size: 30pt; } h2 { font-size: 20pt; }
+.script { font-family: "Marck Script", cursive; color: #a8553f; font-size: 17pt; margin: 0 0 2mm; }
+p { margin: 0 0 3mm; }
+.cover { background: linear-gradient(180deg, #ece6f3 0%, #f8f2ea 60%, #efe4d6 100%); display: flex; flex-direction: column; justify-content: space-between; }
+.cover .arch { margin: 6mm auto 0; width: 92mm; height: 92mm; border-radius: 999px 999px 8mm 8mm; background: #fffdf9; display: flex; align-items: flex-end; justify-content: center; gap: 4mm; padding-bottom: 10mm; }
+.cover .arch img { height: 48mm; filter: drop-shadow(0 3mm 3mm rgba(58,42,34,.3)); }
+.cover .arch img:nth-child(2) { height: 40mm; }
+.foot { font-size: 8.5pt; color: #7a685c; }
+.box { background: #fffdf9; border: 0.3mm solid #e6d9c8; border-radius: 4mm; padding: 3mm 4.5mm; margin-bottom: 2.5mm; font-size: 9.6pt; }
+.tight ul { font-size: 9.6pt; } .tight li { margin-bottom: 0.6mm; }
+.box b { font-family: "Cormorant Garamond", serif; font-size: 13.5pt; display: block; margin-bottom: 1mm; }
+ul { margin: 0 0 3mm; padding-left: 5mm; } li { margin-bottom: 1.2mm; } li::marker { color: #a8553f; }
+.num { font-family: "Marck Script", cursive; color: #a8553f; font-size: 16pt; margin-right: 2mm; }
+.rit { display: grid; grid-template-columns: 22mm 1fr; gap: 4mm; align-items: center; background: #fffdf9; border-radius: 4mm; padding: 3.5mm; margin-bottom: 3mm; border: 0.3mm solid #e6d9c8; }
+.rit img { height: 20mm; justify-self: center; }
+.rit b { font-family: "Cormorant Garamond", serif; font-size: 13.5pt; }
+.rit p { margin: 0; font-size: 9.5pt; }
+.note { font-size: 8pt; color: #7a685c; }
+.ph { background: #fff3b0; color: #5c4a00; border: 0.2mm dashed currentColor; border-radius: 1mm; padding: 0 1.5mm; }
+.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; margin: 4mm 0; }
+.three div { background: #fffdf9; border-radius: 4mm; padding: 3mm; text-align: center; border: 0.3mm solid #e6d9c8; }
+.three img { height: 26mm; margin: 0 auto 2mm; display: block; }
+.three b { font-family: "Cormorant Garamond", serif; font-size: 13pt; display: block; }
+.three span { font-size: 8.5pt; color: #7a685c; }
+.cta { background: #a8553f; color: #fff; border-radius: 4mm; padding: 5mm; }
+.cta h2 { color: #fff; }
+.cta a { color: #fff; }
+</style></head><body>
+
+<section class="pg cover">
+  <div>
+    <p class="script">{{brand}}</p>
+    <h1>5 малки ритуала с етерични масла</h1>
+    <p>Наръчник за начинаещи от {{name}}</p>
+  </div>
+  <div class="arch"><img src="{{img27}}"><img src="{{img28}}"><img src="{{img37}}"></div>
+  <p class="foot">{{name}} · независим консултант на dōTERRA · {{instagram}}</p>
+</section>
+
+<section class="pg tight">
+  <p class="script">преди да започнете</p>
+  <h2>Три начина да използвате маслата</h2>
+  <div class="box"><b>Ароматно</b>Няколко капки в дифузер с вода или една капка в дланите и няколко вдишвания. Най-лесният начин за начало.</div>
+  <div class="box"><b>Върху кожата</b>Разредете с базово масло, например фракционирано кокосово: 1–2 капки етерично масло в чаена лъжичка базово. Рол-он версиите Touch са вече разредени.</div>
+  <div class="box"><b>Вътрешно</b>Само масла, на чийто етикет изрично пише, че са подходящи за вътрешна употреба, и само в посоченото количество.</div>
+  <h2 style="font-size:15pt;margin:3mm 0 2mm">Безопасност</h2>
+  <ul>
+    <li>Първо пробвайте на малко място от кожата, например от вътрешната страна на ръката.</li>
+    <li>Пазете маслата от очите, вътрешността на ушите и лигавиците.</li>
+    <li>След цитрусови масла върху кожата избягвайте слънце 12 часа.</li>
+    <li>При деца разреждайте повече и избирайте продукти, предназначени за тях.</li>
+    <li>При бременност, кърмене или прием на лекарства първо се консултирайте с лекар.</li>
+  </ul>
+</section>
+
+<section class="pg">
+  <p class="script">ритуали</p>
+  <h2>5 малки ритуала за всеки ден</h2>
+  <div class="rit"><img src="{{img28}}"><div><b><span class="num">1</span>Свежа сутрин</b><p>3 капки Лимон и 2 капки Див портокал в дифузера, докато правите кафето.</p></div></div>
+  <div class="rit"><img src="{{img37}}"><div><b><span class="num">2</span>Пауза следобед</b><p>Една капка Мента в дланите, разтъркайте и вдишайте бавно три пъти. Или в дифузера до бюрото.</p></div></div>
+  <div class="rit"><img src="{{img79}}"><div><b><span class="num">3</span>Свеж дом</b><p>Спрей за стаи: 100 мл вода, 1 ч.л. сода бикарбонат и 10 капки Purify или Лимон. Разклащайте преди употреба.</p></div></div>
+  <div class="rit"><img src="{{img27}}"><div><b><span class="num">4</span>Спокойна вечер</b><p>4 капки Лавандула и 2 капки Кедрово дърво в дифузера един час преди лягане.</p></div></div>
+  <div class="rit"><img src="{{img20}}"><div><b><span class="num">5</span>Грижа за ръцете</b><p>1 капка Тамян в лъжичка кокосово масло за масаж на ръцете и кутикулите вечер.</p></div></div>
+</section>
+
+<section class="pg">
+  <p class="script">с какво да започнете</p>
+  <h2>Моите 3 масла за начало</h2>
+  <div class="three">
+    <div><img src="{{img27}}"><b>Лавандула</b><span>мека и универсална</span></div>
+    <div><img src="{{img28}}"><b>Лимон</b><span>свеж и чист</span></div>
+    <div><img src="{{img37}}"><b>Мента</b><span>хладна и ободряваща</span></div>
+  </div>
+  <p>Трите заедно ги има и в малкия комплект за начинаещи. Добавете дифузер и шишенце фракционирано кокосово масло и имате всичко за първия месец.</p>
+  <div class="cta">
+    <h2>Искате ли помощ с първата поръчка?</h2>
+    <p>Пишете ми и ще ви покажа как да пазарувате на цена за членове. Поръчката става в официалния магазин на dōTERRA с моя линк.</p>
+    <p><b>Viber:</b> {{viber}}<br><b>Instagram:</b> {{instagram}}<br><b>Сайт:</b> {{site}}</p>
+  </div>
+  <p class="note" style="margin-top:4mm">Информацията е с образователна цел и не е медицински съвет. Продуктите не са предназначени да диагностицират, лекуват или предотвратяват заболявания. dōTERRA е търговска марка на dōTERRA Holdings, LLC.</p>
+</section>
+</body></html>
