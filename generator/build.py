@@ -120,6 +120,22 @@ PURPOSES = [("Спокойствие", "спокой"), ("Ободряване",
             ("Грижа за кожата", "кожата"), ("Коса", "коса"), ("Деца", "деца"), ("Цитрусови аромати", "цитрус"),
             ("Рол-он", "рол-он"), ("Масаж", "масаж"), ("Готвене", "готв"), ("Дифузери", "дифузер")]
 
+# Английски имена (и синоними) за търсачката: хората често търсят „lavender“, „lemon“…
+SEARCH_ALIAS = {
+    2: "thuja arborvitae", 3: "basil", 4: "bergamot", 5: "black pepper", 6: "cardamom", 7: "blue tansy",
+    8: "cassia", 9: "cedarwood", 10: "cilantro", 11: "cinnamon bark канела", 12: "clary sage", 13: "clove",
+    14: "copaiba", 15: "coriander", 16: "cypress", 17: "douglas fir", 18: "eucalyptus", 19: "fennel",
+    20: "frankincense", 21: "geranium", 22: "ginger", 23: "grapefruit", 24: "helichrysum immortelle",
+    25: "green mandarin", 26: "juniper berry", 27: "lavender", 28: "lemon", 29: "lemongrass", 30: "lime",
+    31: "marjoram", 32: "tea tree melaleuca", 33: "melissa", 34: "myrrh", 35: "oregano", 36: "patchouli",
+    37: "peppermint", 38: "розов пипер", 39: "bitter orange", 40: "peppermint beadlets", 41: "roman chamomile",
+    42: "rosemary", 43: "sandalwood", 44: "hawaiian sandalwood", 45: "siberian fir", 46: "spearmint",
+    47: "spikenard", 48: "tangerine", 49: "thyme", 50: "vetiver", 51: "wild orange", 52: "turmeric",
+    53: "yarrow pom", 54: "wintergreen", 55: "ylang ylang", 98: "magnolia", 113: "kids collection",
+    121: "diffuser", 122: "diffuser", 123: "diffuser", 124: "fractionated coconut oil", 126: "veggie caps",
+    128: "deodorant", 146: "toothpaste", 148: "toothpaste", 182: "shampoo", 184: "conditioner",
+}
+
 BUNDLE_ICON = {"vecher": "moon", "dom": "home", "sezon": "leaf", "deca": "star", "nachalo": "sprout"}
 
 def deco(r, name, cls):
@@ -419,7 +435,7 @@ class Site:
 </div></div>
 <header class="top"><div class="wrap top-in">
   <a class="logo" href="{r}{self.home}">{LOGO_SVG}<span><b>{brand_html}</b><small>с Петя · независим консултант на dōTERRA</small></span></a>
-  <form class="top-search" action="{r}katalog.html" method="get" role="search"><label class="sr" for="top-q">Търсене в каталога</label><input id="top-q" name="q" type="search" placeholder="Търсете продукт: лавандула, рол-он…" autocomplete="off">{ICONS["search"]}</form>
+  <form class="top-search" action="{r}katalog.html" method="get" role="search"><label class="sr" for="top-q">Търсене в каталога</label><input id="top-q" name="q" type="search" placeholder="Търсете продукт: лавандула, рол-он…" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest">{ICONS["search"]}<ul class="suggest" id="suggest" role="listbox" aria-label="Предложения" hidden></ul></form>
   <a class="top-buy" href="{r}stani-chlen.html">{ICONS["bag"]}<span>Пазарувай</span></a>
   <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" id="menu-btn">Меню</button>
 </div>
@@ -464,6 +480,7 @@ class Site:
   </div>
 </div></footer>
 {self.fab(r)}
+<script src="{r}assets/search-index.js?v={self.idx_v}"></script>
 <script src="{r}assets/site.js?v={_v('site.js')}"></script>
 </body>
 </html>
@@ -876,7 +893,9 @@ class Site:
     <label class="search"><span class="sr">Търсене</span><input id="q" type="search" placeholder="Търсене: лавандула, рол-он, Deep Blue…" autocomplete="off"></label>
     <div class="chips" id="chips">{''.join(chips)}</div>
   </div>
-  <p class="empty" id="empty" hidden>Няма намерени продукти. Опитайте с друга дума.</p>
+  <div id="results" hidden><p class="res-head" id="res-head" aria-live="polite"></p><div class="grid" id="res-main"></div>
+    <p class="res-sub" id="res-sub" hidden></p><div class="grid" id="res-more"></div></div>
+  <p class="empty" id="empty" hidden>Няма намерени продукти. Опитайте с друга дума, на кирилица или латиница, например „лавандула“ или „lavender“.</p>
   {''.join(sections)}
 </section>"""
         self.page("katalog.html", "Каталог на продуктите", body, 0,
@@ -1146,6 +1165,14 @@ class Site:
         os.makedirs(os.path.join(self.out, "assets"), exist_ok=True)
         for f in ("style.css", "site.js"):
             shutil.copy(os.path.join(assets_src, f), os.path.join(self.out, "assets", f))
+        # Индекс за търсачката в горната лента (зарежда се като скрипт, за да работи и без сървър)
+        idx = [{"u": p["slug"], "n": p["dname"], "a": SEARCH_ALIAS.get(p["id"], ""), "l": p["latin_name"],
+                "m": " · ".join(x for x in [p["dtype"], p["size"]] if x), "c": p["category"], "i": p["imgfile"]}
+               for p in self.p]
+        js = "window.KAPKA_IDX=" + json.dumps(idx, ensure_ascii=False, separators=(",", ":")) + ";\n"
+        with open(os.path.join(self.out, "assets", "search-index.js"), "w", encoding="utf-8") as f:
+            f.write(js)
+        self.idx_v = hashlib.md5(js.encode("utf-8")).hexdigest()[:8]
         ill = os.path.join(self.out, "assets", "ill")
         if os.path.isdir(ill):
             shutil.rmtree(ill)
