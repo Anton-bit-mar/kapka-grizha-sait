@@ -86,10 +86,12 @@
   var IDX = (window.KAPKA_IDX || []).map(function (p, i) {
     var o = { p: p, i: i, f: {} };
     for (var k in W) o.f[k] = field(p[k]);
+    o.raw = String(p.n || '').toLowerCase().replace(/^dōterra\s+/, '');
     return o;
   });
   // Връща [{o, score, body}] сортирани по точност
   function search(query, bodyOf) {
+    var rawQ = String(query).toLowerCase().trim();
     var terms = skel(String(query).replace(/(\S)-(?=\S)/g, '$1')).split(' ').filter(Boolean); // „рол-он“ → „ролон“
     if (!terms.length) return [];
     var out = [];
@@ -108,6 +110,9 @@
         total += t.length < 3 ? best * 0.2 : best; // „on“, „hd“ тежат малко
       }
       if (o.f.n.s.indexOf(' ' + terms.join(' ')) === 0) total += 20; // името започва със заявката
+      var raw = o.raw, rq = rawQ;                                     // и буквално, на същата азбука:
+      if (raw.indexOf(rq) === 0) total += 40;                         // „ла“ → първо „Лавандула“, „Лайм“
+      else if (raw.indexOf(' ' + rq) !== -1) total += 15;
       out.push({ o: o, score: total, body: !named });
     });
     out.sort(function (x, y) { return (x.body - y.body) || (y.score - x.score) || (x.o.i - y.o.i); });
