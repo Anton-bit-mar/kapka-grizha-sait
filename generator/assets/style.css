@@ -737,3 +737,15 @@ main > .wrap.block:first-of-type, main > section:nth-child(2) { position: relati
   .nav .mega-me a, .nav .mega-all { border: 0; }
 }
 @media (max-width: 860px) { .nav { flex-wrap: nowrap; } .nav > * { flex: none; } }
+
+/* търсачка: предложения под горната лента и резултати в каталога */
+.suggest { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 60; list-style: none; margin: 0; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 14px 34px rgba(58, 42, 34, 0.16); max-height: 70vh; overflow: auto; }
+.suggest li a { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px; color: var(--ink); text-decoration: none; }
+.suggest li a:hover, .suggest li[aria-selected="true"] a { background: var(--lav-soft); }
+.suggest img { width: 40px; height: 40px; object-fit: contain; flex: none; background: var(--well-a); border-radius: 8px; }
+.suggest b { display: block; font-weight: 600; font-size: 0.93rem; line-height: 1.25; }
+.suggest small { display: block; color: var(--muted); font-size: 0.8rem; line-height: 1.3; }
+.suggest .sug-all a { justify-content: center; color: var(--terra); font-weight: 600; font-size: 0.9rem; border-top: 1px solid var(--line); border-radius: 0 0 10px 10px; margin-top: 4px; }
+.res-head { font-weight: 600; margin: 8px 0 14px; }
+.res-sub { color: var(--muted); margin: 30px 0 14px; padding-top: 18px; border-top: 1px solid var(--line); }
+#results .grid:empty { display: none; }

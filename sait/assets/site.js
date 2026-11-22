@@ -8,7 +8,6 @@
     });
   }
 
-  // Каталог: търсене и филтър по категория
   // Мега-меню „Магазин“ (на телефон се отваря с натискане)
   Array.prototype.forEach.call(document.querySelectorAll('.mega-wrap'), function (w) {
     var b = w.querySelector('.mega-btn');
@@ -32,39 +31,189 @@
     window.addEventListener('resize', upd); upd();
   });
 
+  // ---- Търсачка -------------------------------------------------------------
+  // Всичко се свежда до „скелет“ на латиница, за да се намира продуктът и при
+  // кирилица/латиница („дийп блу“ = „Deep Blue“), главни/малки букви, тирета,
+  // ™, окончания („лавандулово“) и дребни грешки („лавандла“).
+  var TR = { 'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sht', 'ъ': 'a', 'ь': 'y', 'ю': 'yu', 'я': 'ya', 'ё': 'yo', 'ы': 'i', 'э': 'e' };
+  function skel(s) {
+    s = String(s || '').toLowerCase();
+    if (s.normalize) s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+    s = s.replace(/[а-яё]/g, function (c) { return TR[c] || c; });
+    s = s.replace(/ch/g, '\u0001').replace(/c(?=[eiy])/g, 's').replace(/c/g, 'k').replace(/\u0001/g, 'ch')
+      .replace(/ph/g, 'f').replace(/th/g, 't').replace(/ee|ea|ie/g, 'i').replace(/oo|ou/g, 'u')
+      .replace(/y/g, 'i').replace(/w/g, 'v').replace(/q/g, 'k').replace(/x/g, 'ks').replace(/ts/g, 's')
+      .replace(/gu(?=[aeiou])/g, 'g').replace(/dzh|dj|zh/g, 'j').replace(/([a-z])\1+/g, '$1');
+    return s.replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+  function lev(a, b, max) {
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    var prev = [], cur, i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      cur = [i]; var best = i;
+      for (j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (cur[j] < best) best = cur[j];
+      }
+      if (best > max) return max + 1;
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  function field(s) {
+    var k = skel(s), w = k ? k.split(' ') : [];
+    var pairs = [];
+    for (var i = 0; i + 1 < w.length; i++) pairs.push(w[i] + w[i + 1]);
+    return { s: ' ' + k, c: w.join(''), w: w.concat(pairs) };
+  }
+  // Колко добре дума t пасва на поле f (0 = не пасва)
+  function hit(t, f, fuzzy) {
+    if (f.s.indexOf(' ' + t) !== -1) return 3;           // начало на дума
+    if (t.length < 3) return 0;
+    if (f.c.indexOf(t) !== -1) return 2;                 // вътре в дума / слято („ролон“)
+    if (!fuzzy || t.length < 5) return 0;
+    var need = Math.max(4, t.length - 3), max = t.length >= 8 ? 2 : 1;
+    for (var i = 0; i < f.w.length; i++) {
+      var w = f.w[i], n = 0;
+      while (n < w.length && n < t.length && w[n] === t[n]) n++;
+      if (n >= need && w.length >= need) return 1.5;     // окончание: „лавандулово“
+      if (w.length >= 4 && lev(t, w, max) <= max) return 1; // правописна грешка
+    }
+    return 0;
+  }
+  var W = { n: 10, a: 7, l: 5, m: 3, c: 3 };
+  var IDX = (window.KAPKA_IDX || []).map(function (p, i) {
+    var o = { p: p, i: i, f: {} };
+    for (var k in W) o.f[k] = field(p[k]);
+    o.raw = String(p.n || '').toLowerCase().replace(/^dōterra\s+/, '');
+    return o;
+  });
+  // Връща [{o, score, body}] сортирани по точност
+  function search(query, bodyOf) {
+    var rawQ = String(query).toLowerCase().trim();
+    var terms = skel(String(query).replace(/(\S)-(?=\S)/g, '$1')).split(' ').filter(Boolean); // „рол-он“ → „ролон“
+    if (!terms.length) return [];
+    var out = [];
+    IDX.forEach(function (o) {
+      var total = 0, named = true;
+      for (var j = 0; j < terms.length; j++) {
+        var t = terms[j], best = 0;
+        for (var k in W) { var h = hit(t, o.f[k], k !== 'm' && k !== 'c'); if (h * W[k] > best) best = h * W[k]; }
+        if (!best) {
+          named = false;
+          var b = bodyOf && bodyOf(o.p.u);
+          var hb = b ? hit(t, b, false) : 0;
+          if (!hb) return;
+          best = hb * 0.5;
+        }
+        total += t.length < 3 ? best * 0.2 : best; // „on“, „hd“ тежат малко
+      }
+      if (o.f.n.s.indexOf(' ' + terms.join(' ')) === 0) total += 20; // името започва със заявката
+      var raw = o.raw, rq = rawQ;                                     // и буквално, на същата азбука:
+      if (raw.indexOf(rq) === 0) total += 40;                         // „ла“ → първо „Лавандула“, „Лайм“
+      else if (raw.indexOf(' ' + rq) !== -1) total += 15;
+      out.push({ o: o, score: total, body: !named });
+    });
+    out.sort(function (x, y) { return (x.body - y.body) || (y.score - x.score) || (x.o.i - y.o.i); });
+    return out;
+  }
+
+  // Предложения под търсачката в горната лента
+  var topQ = document.getElementById('top-q'), sug = document.getElementById('suggest');
+  if (topQ && sug && IDX.length) {
+    var form = topQ.form, root = form.action.replace(/katalog\.html.*$/, ''), sel = -1;
+    var preQ = new URLSearchParams(location.search).get('q');
+    if (preQ && /katalog\.html/.test(location.pathname)) topQ.value = preQ;
+    var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var close = function () { sug.hidden = true; sel = -1; topQ.setAttribute('aria-expanded', 'false'); };
+    var mark = function () {
+      Array.prototype.forEach.call(sug.children, function (li, i) { li.setAttribute('aria-selected', i === sel ? 'true' : 'false'); });
+    };
+    topQ.addEventListener('input', function () {
+      var v = topQ.value.trim();
+      if (!v) { close(); return; }
+      var res = search(v).slice(0, 6);
+      var h = res.map(function (r) {
+        var p = r.o.p;
+        return '<li role="option" aria-selected="false"><a href="' + root + 'produkti/' + p.u + '.html"><img src="' + root + 'images/' + p.i + '" alt="">' +
+          '<span><b>' + esc(p.n) + '</b><small>' + esc(p.m || p.c) + '</small></span></a></li>';
+      }).join('');
+      h += '<li role="option" aria-selected="false" class="sug-all"><a href="' + root + 'katalog.html?q=' + encodeURIComponent(v) + '">' +
+        (res.length ? 'Всички резултати за „' + esc(v) + '“ →' : 'Няма точно съвпадение. Потърсете в описанията →') + '</a></li>';
+      sug.innerHTML = h; sug.hidden = false; sel = -1; topQ.setAttribute('aria-expanded', 'true');
+    });
+    topQ.addEventListener('keydown', function (e) {
+      if (sug.hidden) return;
+      var n = sug.children.length;
+      if (e.key === 'ArrowDown') { sel = (sel + 1) % n; mark(); e.preventDefault(); }
+      else if (e.key === 'ArrowUp') { sel = (sel - 1 + n) % n; mark(); e.preventDefault(); }
+      else if (e.key === 'Escape') { close(); }
+      else if (e.key === 'Enter' && sel >= 0) { e.preventDefault(); location.href = sug.children[sel].querySelector('a').href; }
+    });
+    document.addEventListener('click', function (e) { if (!form.contains(e.target)) close(); });
+    topQ.addEventListener('focus', function () { if (topQ.value.trim() && sug.innerHTML) { sug.hidden = false; topQ.setAttribute('aria-expanded', 'true'); } });
+  }
+
+  // Каталог: търсене и филтър по категория
   var q = document.getElementById('q');
   var chips = document.getElementById('chips');
   if (q && chips) {
-  var secs = Array.prototype.slice.call(document.querySelectorAll('.cat-sec'));
-  var empty = document.getElementById('empty');
-  var filter = '';
-  var norm = function (s) { return s.toLowerCase().replace(/ō/g, 'o').replace(/á/g, 'a'); };
-  secs.forEach(function (s) {
-    s.querySelectorAll('.card').forEach(function (c) { c._t = norm(c.textContent + ' ' + (c.getAttribute('data-k') || '')); });
-  });
-  function apply() {
-    var terms = norm(q.value.trim()).split(/\s+/).filter(Boolean);
-    var shown = 0;
+    var secs = Array.prototype.slice.call(document.querySelectorAll('.cat-sec'));
+    var empty = document.getElementById('empty');
+    var results = document.getElementById('results'), resHead = document.getElementById('res-head');
+    var resMain = document.getElementById('res-main'), resMore = document.getElementById('res-more'), resSub = document.getElementById('res-sub');
+    var filter = '', cards = {}, bodies = {};
     secs.forEach(function (s) {
-      var inCat = !filter || s.getAttribute('data-sec') === filter;
-      var n = 0;
       s.querySelectorAll('.card').forEach(function (c) {
-        var ok = inCat && terms.every(function (t) { return c._t.indexOf(t) !== -1; });
-        c.hidden = !ok; if (ok) n++;
+        var a = c.querySelector('.card-name'), slug = a.getAttribute('href').replace(/^.*\/|\.html$/g, '');
+        if (!cards[slug]) { cards[slug] = c; bodies[slug] = field(c.getAttribute('data-k') || ''); }
       });
-      s.hidden = n === 0; shown += n;
     });
-    empty.hidden = shown !== 0;
-  }
-  q.addEventListener('input', apply);
-  var pre = new URLSearchParams(location.search).get('q');
-  if (pre) { q.value = pre; apply(); }
-  chips.addEventListener('click', function (e) {
-    var b = e.target.closest('.chip'); if (!b) return;
-    filter = b.getAttribute('data-f');
-    chips.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
-    apply();
-  });
+    var bodyOf = function (u) { return bodies[u]; };
+    var apply = function () {
+      var v = q.value.trim();
+      if (!v) {
+        results.hidden = true;
+        var shown = 0;
+        secs.forEach(function (s) {
+          var on = !filter || s.getAttribute('data-sec') === filter;
+          s.hidden = !on; if (on) shown++;
+        });
+        empty.hidden = shown !== 0;
+        return;
+      }
+      var res = search(v, bodyOf).filter(function (r) {
+        var c = cards[r.o.p.u];
+        return c && (!filter || c.getAttribute('data-cat') === filter);
+      });
+      secs.forEach(function (s) { s.hidden = true; });
+      resMain.innerHTML = ''; resMore.innerHTML = '';
+      var main = 0, more = 0;
+      res.forEach(function (r) {
+        var c = cards[r.o.p.u].cloneNode(true);
+        c.hidden = false;
+        if (r.body) { resMore.appendChild(c); more++; } else { resMain.appendChild(c); main++; }
+      });
+      var total = main + more;
+      results.hidden = total === 0; empty.hidden = total !== 0;
+      resHead.textContent = main ? 'Намерени продукти за „' + v + '“: ' + main : 'Няма продукт с това име.';
+      resSub.hidden = !more;
+      resSub.textContent = main ? 'Споменават „' + v + '“ в описанието си (' + more + ')' : 'Тези продукти споменават „' + v + '“ в описанието си (' + more + '):';
+    };
+    var t;
+    q.addEventListener('input', function () {
+      clearTimeout(t); t = setTimeout(apply, 80);
+      try { var u = new URL(location.href); if (q.value.trim()) u.searchParams.set('q', q.value.trim()); else u.searchParams.delete('q'); history.replaceState(null, '', u); } catch (e) {}
+    });
+    var pre = new URLSearchParams(location.search).get('q');
+    if (pre) { q.value = pre; apply(); }
+    chips.addEventListener('click', function (e) {
+      var b = e.target.closest('.chip'); if (!b) return;
+      filter = b.getAttribute('data-f');
+      chips.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
+      apply();
+    });
   }
 
   // Форми (наръчник, среща): изпращат се към Netlify Forms, когато сайтът е качен там.
