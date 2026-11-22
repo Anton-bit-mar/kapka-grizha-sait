@@ -9,6 +9,29 @@
   }
 
   // Каталог: търсене и филтър по категория
+  // Мега-меню „Магазин“ (на телефон се отваря с натискане)
+  Array.prototype.forEach.call(document.querySelectorAll('.mega-wrap'), function (w) {
+    var b = w.querySelector('.mega-btn');
+    b.addEventListener('click', function () {
+      var o = w.classList.toggle('open');
+      b.setAttribute('aria-expanded', o ? 'true' : 'false');
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { w.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } });
+  });
+
+  // Ленти със стрелки
+  Array.prototype.forEach.call(document.querySelectorAll('.rail-wrap'), function (w) {
+    var rail = w.querySelector('.rail'), prev = w.querySelector('.prev'), next = w.querySelector('.next');
+    function upd() {
+      prev.disabled = rail.scrollLeft < 8;
+      next.disabled = rail.scrollLeft + rail.clientWidth > rail.scrollWidth - 8;
+    }
+    prev.addEventListener('click', function () { rail.scrollBy({ left: -rail.clientWidth * 0.8 }); });
+    next.addEventListener('click', function () { rail.scrollBy({ left: rail.clientWidth * 0.8 }); });
+    rail.addEventListener('scroll', upd, { passive: true });
+    window.addEventListener('resize', upd); upd();
+  });
+
   var q = document.getElementById('q');
   var chips = document.getElementById('chips');
   if (q && chips) {
@@ -17,7 +40,7 @@
   var filter = '';
   var norm = function (s) { return s.toLowerCase().replace(/ō/g, 'o').replace(/á/g, 'a'); };
   secs.forEach(function (s) {
-    s.querySelectorAll('.card').forEach(function (c) { c._t = norm(c.textContent); });
+    s.querySelectorAll('.card').forEach(function (c) { c._t = norm(c.textContent + ' ' + (c.getAttribute('data-k') || '')); });
   });
   function apply() {
     var terms = norm(q.value.trim()).split(/\s+/).filter(Boolean);
@@ -34,6 +57,8 @@
     empty.hidden = shown !== 0;
   }
   q.addEventListener('input', apply);
+  var pre = new URLSearchParams(location.search).get('q');
+  if (pre) { q.value = pre; apply(); }
   chips.addEventListener('click', function (e) {
     var b = e.target.closest('.chip'); if (!b) return;
     filter = b.getAttribute('data-f');

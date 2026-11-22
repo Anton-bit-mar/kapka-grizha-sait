@@ -11,6 +11,7 @@ def _v(f):
     try: return hashlib.md5(open(os.path.join(_AD,f),"rb").read()).hexdigest()[:8]
     except OSError: return "1"
 from collections import OrderedDict
+from urllib.parse import quote
 
 # ---------------------------------------------------------------------------
 # НАСТРОЙКИ – попълнете тук данните на консултанта
@@ -23,7 +24,7 @@ CONFIG = {
     "phone": "",             # напр. "+359 888 123 456"
     "email": "",
     "viber": "",             # номер за Viber, ако е различен
-    "facebook": "",          # пълен URL
+    "facebook": "https://www.facebook.com/petya.ganozova",
     "instagram": "https://www.instagram.com/pety_sy/",
     "shop_url": "",          # личен линк към онлайн магазина на dōTERRA (с нейния ID)
     "enroll_url": "",        # линк за регистрация (членство/консултант) под нея
@@ -92,6 +93,33 @@ ICONS = {
     "star": _ic('<path d="M12 4l2.4 5 5.6.6-4.2 3.8 1.2 5.6L12 16.3 7 19l1.2-5.6L4 9.6 9.6 9z"/>'),
     "sprout": _ic('<path d="M12 20v-8"/><path d="M12 12C12 8 9 6 5 6c0 4 3 6 7 6z"/><path d="M12 14c0-3 2.5-5 6-5 0 3-2.5 5-6 5z"/>'),
 }
+ICONS.update({
+    "instagram": _ic('<rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.9" cy="7.1" r=".6" fill="currentColor"/>'),
+    "facebook": _ic('<path d="M14 8h2.5V4.5H14c-2.5 0-4 1.6-4 4V11H7.5v3.5H10V20h3.5v-5.5H16l.5-3.5h-3V8.8c0-.5.3-.8.5-.8z"/>'),
+    "viber": _ic('<path d="M12 3.5c-5 0-8 2.6-8 7.3 0 2.6.9 4.4 2.6 5.5V20l3-2.2c.8.1 1.6.2 2.4.2 5 0 8-2.6 8-7.3S17 3.5 12 3.5z"/><path d="M9.5 8.5c.4-.4 1-.3 1.2.2l.5 1.1c.1.3 0 .6-.2.8l-.4.4c.4.9 1.2 1.7 2.1 2.1l.4-.4c.2-.2.5-.3.8-.2l1.1.5c.5.2.6.8.2 1.2-.8.9-2.2.9-3.6-.1a8 8 0 0 1-2.4-2.4c-.9-1.3-.6-2.5.3-3.2z"/>'),
+    "search": _ic('<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>'),
+    "bag": _ic('<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'),
+    "gift": _ic('<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11"/><path d="M12 9c-2-4-6-4-6-1.5S10 9 12 9zm0 0c2-4 6-4 6-1.5S14 9 12 9z"/>'),
+    "drop": _ic('<path d="M12 3.5c3.5 4.5 6 8 6 11a6 6 0 0 1-12 0c0-3 2.5-6.5 6-11z"/>'),
+    "chev": _ic('<path d="M9 6l6 6-6 6"/>'),
+    "chevl": _ic('<path d="M15 6l-6 6 6 6"/>'),
+    "down": _ic('<path d="M6 9l6 6 6-6"/>'),
+})
+
+# „Пазарувай по продуктова линия“ – като в магазина на dōTERRA (категория, кратко име, фон)
+LINES = [
+    ("On Guard продукти", "On Guard", "peach"), ("Deep Blue продукти", "Deep Blue", "sky"),
+    ("dōTERRA Serenity продукти", "Serenity", "lav"), ("dōTERRA Air продукти", "dōTERRA Air", "sky"),
+    ("Veráge грижа за кожата", "Veráge", "peach"), ("dōTERRA СПА", "dōTERRA СПА", "sage"),
+    ("Salon Essentials (грижа за косата)", "Грижа за косата", "lav"), ("Lifelong Vitality", "Lifelong Vitality", "sage"),
+    ("Колекция за деца", "За деца", "peach"), ("Смеси Touch (рол-он)", "Рол-он смеси", "lav"),
+    ("Дифузери", "Дифузери", "sky"),
+]
+# „Пазарувай по повод“ – думи за търсене в каталога
+PURPOSES = [("Спокойствие", "спокой"), ("Ободряване", "ободр"), ("Свежест", "свеж"), ("Почистване у дома", "почиств"),
+            ("Грижа за кожата", "кожата"), ("Коса", "коса"), ("Деца", "деца"), ("Цитрусови аромати", "цитрус"),
+            ("Рол-он", "рол-он"), ("Масаж", "масаж"), ("Готвене", "готв"), ("Дифузери", "дифузер")]
+
 BUNDLE_ICON = {"vecher": "moon", "dom": "home", "sezon": "leaf", "deca": "star", "nachalo": "sprout"}
 
 def deco(r, name, cls):
@@ -359,15 +387,15 @@ class Site:
         brand_html = esc(brand) if brand else '<span class="ph">Име / марка</span>'
         nav = [(self.home, "Начало", "home"),
                ("zapochni.html", "Започни оттук", "zapochni"),
-               ("katalog.html", "Каталог", "katalog"),
                ("novini.html", "Новини", "novini"),
                ("raboti-s-men.html", "Работи с мен", "raboti"),
                ("za-men.html", "За мен", "za-men"),
-               ("kontakti.html", "Контакт", "kontakti"),
-               ("stani-chlen.html", "Пазарувай с мен", "stani-chlen")]
+               ("kontakti.html", "Контакт", "kontakti")]
         cur = ' aria-current="page"'
-        navh = "".join(f'<a href="{r}{h}"{cur if k == active else ""}{" class=nav-cta" if k == "stani-chlen" else ""}>{t}</a>'
-                       for h, t, k in nav)
+        navh = (f'<a href="{r}{self.home}"{cur if active == "home" else ""}>Начало</a>'
+                + self.mega(r, active == "katalog")
+                + "".join(f'<a href="{r}{h}"{cur if k == active else ""}>{t}</a>' for h, t, k in nav[1:])
+                + f'<a href="{r}stani-chlen.html" class="nav-cta"{cur if active == "stani-chlen" else ""}>Пазарувай с мен</a>')
         full_title = f"{title} | {brand}" if brand else title
         shop = CONFIG["shop_url"]
         doc = f"""<!doctype html>
@@ -385,32 +413,49 @@ class Site:
 </head>
 <body>
 <a class="skip" href="#main">Към съдържанието</a>
+<div class="util"><div class="wrap util-in">
+  <p>{ICONS["drop"]}<span>С вас е <b>{esc(CONFIG["name"])}</b>, независим консултант на dōTERRA</span></p>
+  <div class="util-links"><a href="{r}zapochni.html#test">Кое масло е за мен?</a><a href="{r}podarak.html">Безплатен наръчник</a><a href="{r}stani-chlen.html#chlenstvo">Цена за членове</a>{self.socials(r, "util-soc")}</div>
+</div></div>
 <header class="top"><div class="wrap top-in">
-  <a class="logo" href="{r}{self.home}">{LOGO_SVG}<span><b>{brand_html}</b><small>Независим консултант на dōTERRA</small></span></a>
-  <a class="top-buy" href="{r}stani-chlen.html">Пазарувай</a>
+  <a class="logo" href="{r}{self.home}">{LOGO_SVG}<span><b>{brand_html}</b><small>с Петя · независим консултант на dōTERRA</small></span></a>
+  <form class="top-search" action="{r}katalog.html" method="get" role="search"><label class="sr" for="top-q">Търсене в каталога</label><input id="top-q" name="q" type="search" placeholder="Търсете продукт: лавандула, рол-он…" autocomplete="off">{ICONS["search"]}</form>
+  <a class="top-buy" href="{r}stani-chlen.html">{ICONS["bag"]}<span>Пазарувай</span></a>
   <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" id="menu-btn">Меню</button>
-  <nav id="nav" class="nav">{navh}</nav>
-</div></header>
+</div>
+<div class="nav-row"><div class="wrap"><nav id="nav" class="nav">{navh}</nav></div></div>
+</header>
 <main id="main">
 {"" if path == self.home else '<div class="main-deco" aria-hidden="true">' + deco(r, "eucalyptus", "md-euc") + deco(r, "lavender", "md-lav") + deco(r, "lemon", "md-lemon") + '</div>'}
 {body}
 </main>
+<section class="foot-cta"><div class="wrap foot-cta-in">
+  <div class="fc-me">{self.portrait_html(r, "fc-photo")}<div><p class="script">винаги насреща</p><p class="fc-t">Имате въпрос? Пишете ми, отговарям лично.</p></div></div>
+  <div class="actions">{self.viber_btn(r)}{self.socials(r, "big-soc", labels=True)}</div>
+</div></section>
 <footer class="foot"><div class="wrap foot-in">
-  <div>
+  <div class="foot-col">
     <p class="foot-brand">{brand_html}</p>
     <p>{self.ph('name','Име Фамилия')}, независим консултант (Wellness Advocate) на dōTERRA{(', ' + esc(CONFIG['city'])) if CONFIG['city'] else ''}.</p>
     <p>Тел.: {self.ph('phone','телефон')} · Имейл: {self.ph('email','имейл')}</p>
+    {self.socials(r, "foot-soc")}
   </div>
-  <div class="foot-links">
-    <a href="{r}zapochni.html">Започни оттук</a>
-    <a href="{r}katalog.html">Каталог</a>
+  <div class="foot-col"><p class="foot-h">Магазин</p>
+    {''.join(f'<a href="{r}grupa/{g[0]}.html">{esc(g[1])}</a>' for g in GROUPS)}
+    <a href="{r}katalog.html">Целият каталог</a>
+  </div>
+  <div class="foot-col"><p class="foot-h">Пазаруване</p>
     <a href="{r}stani-chlen.html">Как да поръчам</a>
     <a href="{r}stani-chlen.html#chlenstvo">Стани член</a>
-    <a href="{r}raboti-s-men.html">Работи с мен</a>
-    <a href="{r}podarak.html">Безплатен наръчник</a>
-    <a href="{r}novini.html">Новини</a>
-    <a href="{r}za-men.html">За мен</a>
+    <a href="{r}zapochni.html">Започни оттук</a>
+    <a href="{r}zapochni.html#komplekti">Готови комплекти</a>
     <a href="{r}kontakti.html">Контакт</a>
+  </div>
+  <div class="foot-col"><p class="foot-h">Петя</p>
+    <a href="{r}za-men.html">За мен</a>
+    <a href="{r}novini.html">Новини</a>
+    <a href="{r}podarak.html">Безплатен наръчник</a>
+    <a href="{r}raboti-s-men.html">Работи с мен</a>
     <a href="{r}poveritelnost.html">Поверителност</a>
   </div>
   <div class="legal">
@@ -429,12 +474,63 @@ class Site:
             f.write(doc)
 
     def card(self, p, r):
+        """Карта на продукт като в магазина: снимка, име, разфасовка и бутон „Купи“."""
         meta = " · ".join(x for x in [p["dtype"], p["size"]] if x)
         latin = f'<span class="latin">{esc(p["latin_name"])}</span>' if p["latin_name"] else ""
-        return (f'<a class="card" href="{r}produkti/{p["slug"]}.html" data-cat="{esc(self.cat_slug[p["category"]])}">'
-                f'<span class="card-img"><img src="{r}images/{p["imgfile"]}" alt="" loading="lazy"></span>'
-                f'<span class="card-body"><span class="card-name">{esc(p["dname"])}</span>{latin}'
-                f'<span class="card-meta">{esc(meta)}</span></span></a>')
+        url = f'{r}produkti/{p["slug"]}.html'
+        buy = self.buy_url(p)
+        buy_h = (f'<a class="card-buy" href="{esc(buy)}" target="_blank" rel="noopener">{ICONS["bag"]}Купи</a>' if buy
+                 else f'<a class="card-buy" href="{r}stani-chlen.html#kupuvane" title="Линкът още не е добавен">{ICONS["bag"]}Купи</a>')
+        kw = " ".join([p["category"], p["description"]] + p["benefits"]).lower()
+        return (f'<article class="card" data-cat="{esc(self.cat_slug[p["category"]])}" data-k="{esc(kw)}">'
+                f'<a class="card-img" href="{url}" tabindex="-1" aria-hidden="true"><img src="{r}images/{p["imgfile"]}" alt="" loading="lazy"></a>'
+                f'<div class="card-body"><a class="card-name" href="{url}">{esc(p["dname"])}</a>{latin}'
+                f'<span class="card-meta">{esc(meta)}</span>'
+                f'<div class="card-foot"><a class="card-more" href="{url}">Виж</a>{buy_h}</div></div></article>')
+
+    # -- нови общи блокове (редизайн в стила на магазина) ---------------------
+    def socials(self, r, cls, labels=False):
+        items = []
+        if CONFIG.get("instagram"):
+            items.append((CONFIG["instagram"], "instagram", "Instagram", "@" + CONFIG["instagram"].rstrip("/").rsplit("/", 1)[-1]))
+        if CONFIG.get("facebook"):
+            items.append((CONFIG["facebook"], "facebook", "Facebook", "Петя във Facebook"))
+        vu = self.viber_url()
+        if vu and not labels:
+            items.append((vu, "viber", "Viber", ""))
+        out = []
+        for u, ic, name, sub in items:
+            ext = "" if u.startswith("viber:") else ' target="_blank" rel="noopener"'
+            if labels:
+                out.append(f'<a class="soc soc-{ic}" href="{esc(u)}"{ext}>{ICONS[ic]}<span><b>{name}</b><small>{esc(sub)}</small></span></a>')
+            else:
+                out.append(f'<a class="soc soc-{ic}" href="{esc(u)}"{ext} aria-label="{name}">{ICONS[ic]}</a>')
+        return f'<div class="{cls}">{"".join(out)}</div>' if out else ""
+
+    def portrait_html(self, r, cls):
+        photo = CONFIG.get("photo")
+        inner = (f'<img src="{r}{esc(photo)}" alt="{esc(CONFIG["name"])}">' if photo
+                 else f'<span class="ph">Снимка</span>')
+        return f'<span class="{cls}">{inner}</span>'
+
+    def mega(self, r, current):
+        cols = []
+        for gslug, gname, gdesc, cats in GROUPS:
+            links = "".join(f'<a href="{r}kategoriya/{self.cat_slug[c]}.html">{esc(c)}</a>' for c in cats)
+            cols.append(f'<div class="mega-col"><a class="mega-h" href="{r}grupa/{gslug}.html">{esc(gname)}</a>{links}</div>')
+        me = (f'<div class="mega-me">{self.portrait_html(r, "mm-photo")}<b>Не знаете какво да изберете?</b>'
+              f'<span>Пишете ми и ще ви помогна да намерите вашите продукти.</span>'
+              f'<a href="{r}zapochni.html#test">Направете теста →</a><a href="{r}kontakti.html#pitane">Пишете ми →</a></div>')
+        return (f'<div class="mega-wrap"><button type="button" class="mega-btn" aria-expanded="false"'
+                f'{" data-current" if current else ""}>Магазин{ICONS["down"]}</button>'
+                f'<div class="mega"><div class="mega-in">{"".join(cols)}{me}</div>'
+                f'<a class="mega-all" href="{r}katalog.html">Целият каталог: {len(self.p)} продукта →</a></div></div>')
+
+    def rail(self, items_html, cls="rail"):
+        """Хоризонтална лента със стрелки (като слайдерите в магазина)."""
+        return (f'<div class="rail-wrap"><button type="button" class="rail-btn prev" aria-label="Назад">{ICONS["chevl"]}</button>'
+                f'<div class="{cls}">{items_html}</div>'
+                f'<button type="button" class="rail-btn next" aria-label="Напред">{ICONS["chev"]}</button></div>')
 
     # -- pages ---------------------------------------------------------------
     # -- общи блокове --------------------------------------------------------------
@@ -511,6 +607,7 @@ class Site:
     # -- начална страница -----------------------------------------------------------
     def build_home(self):
         r = ""
+        byid = {p["id"]: p for p in self.p}
         tiles = []
         for gslug, gname, gdesc, cats in GROUPS:
             items = [p for c in cats for p in self.by_cat[c]]
@@ -526,6 +623,36 @@ class Site:
 </section>""" if news else "")
         photo = CONFIG.get("photo")
         portrait = (f'<img src="{esc(photo)}" alt="{esc(CONFIG["name"])}">' if photo else '<span class="ph">Снимка на Петя</span>')
+
+        # промо карти (като банерите в началото на магазина)
+        pm = next((n for n in self.news if "produkt" in n["slug"]), self.news[0] if self.news else None)
+        promos = []
+        if pm:
+            pimg = byid[pm["products"][0]]["imgfile"] if pm["products"] else ""
+            promos.append(("peach", "продукт на месеца", pm["title"].split(":")[-1].strip(), pm["summary"],
+                           f'novini/{pm["slug"]}.html', "Прочетете", pimg))
+        promos.append(("lav", "подарък", "5 малки ритуала", "Безплатен наръчник за начинаещи с етерични масла.",
+                       "podarak.html", "Вземете наръчника", byid[63]["imgfile"]))
+        promos.append(("sage", "по-ниска цена", "Пазарувайте като член", "Цена за членове и точки за безплатни продукти. Показвам ви как.",
+                       "stani-chlen.html#chlenstvo", "Как става", byid[1]["imgfile"]))
+        promo_h = "".join(
+            f'<a class="promo promo-{c}" href="{h}"><span class="promo-txt"><span class="script">{esc(k)}</span>'
+            f'<b>{esc(t)}</b><span>{esc(d)}</span><span class="promo-go">{esc(go)} →</span></span>'
+            f'{f"""<img src="images/{img}" alt="" loading="lazy">""" if img else ""}</a>'
+            for c, k, t, d, h, go, img in promos)
+
+        fav_h = self.rail("".join(self.card(byid[i], r) for i in TOP10 if i in byid), "rail cards-rail")
+        lines = []
+        for cat, label, tone in LINES:
+            items = self.by_cat.get(cat) or []
+            if not items:
+                continue
+            imgs = "".join(f'<img src="images/{p["imgfile"]}" alt="">' for p in items[:2])
+            lines.append(f'<a class="line line-{tone}" href="kategoriya/{self.cat_slug[cat]}.html"><span class="line-imgs">{imgs}</span>'
+                         f'<span class="line-txt"><b>{esc(label)}</b><small>{len(items)} продукта</small></span></a>')
+        lines_h = self.rail("".join(lines), "rail lines-rail")
+        purp_h = "".join(f'<a class="purpose" href="katalog.html?q={quote(q)}">{esc(t)}</a>' for t, q in PURPOSES)
+
         body = f"""
 <section class="hero me-hero"><div class="wrap hero-in">
   <div class="hero-txt">
@@ -533,7 +660,7 @@ class Site:
     <h1>Здравейте, аз съм {esc(CONFIG['name'])}.<br>Ще ви помогна да откриете етеричните масла.</h1>
     <p class="lead">Не е нужно да разбирате от масла. Кажете ми какво търсите и ще ви предложа с какво да започнете, как да го използвате и как да го поръчате на по-добра цена.</p>
     <div class="actions">{self.viber_btn(r)}<a class="btn ghost" href="zapochni.html#test">Кое масло е за мен?</a></div>
-    <p class="hero-note">Или <a href="stani-chlen.html">пазарувайте директно с моя линк</a>.</p>
+    <div class="hero-follow"><span>Последвайте ме:</span>{self.socials(r, "hero-soc", labels=True)}</div>
   </div>
   <div class="me-photo">
     {deco(r, "lavender", "h-lav")}{deco(r, "lemon", "h-lemon")}{deco(r, "mint", "h-mint")}{deco(r, "drop", "h-drop")}
@@ -541,6 +668,8 @@ class Site:
     <div class="me-badge"><b>{esc(CONFIG['name'])}</b><span>Независим консултант на dōTERRA</span></div>
   </div>
 </div></section>
+
+<section class="wrap promos">{promo_h}</section>
 
 <section class="wrap block">
   <div class="helps">
@@ -550,6 +679,21 @@ class Site:
   </div>
 </section>
 
+<section class="wrap block">
+  <div class="head-row"><div><p class="script">моят избор</p><h2>Любимите масла на Петя</h2></div><a href="zapochni.html#top10">Защо ги избрах →</a></div>
+  {fav_h}
+</section>
+
+<section class="wrap block">
+  <div class="head-row"><h2>Пазарувайте по продуктова линия</h2><a href="katalog.html">Целият каталог →</a></div>
+  {lines_h}
+</section>
+
+<section class="wrap block purposes-sec">
+  <h2>Пазарувайте по повод</h2>
+  <div class="purposes">{purp_h}</div>
+</section>
+
 <section class="band"><div class="wrap block start">
   <div class="start-txt">
     <p class="script">започнете оттук</p>
@@ -557,7 +701,7 @@ class Site:
     <p class="lead">Отговорете на 4 кратки въпроса и ще ви предложа 3 продукта, подходящи за вас. Отнема по-малко от минута.</p>
     <div class="actions"><a class="btn" href="zapochni.html#test">Направи теста</a><a class="btn ghost" href="zapochni.html#top10">Топ 10 масла</a></div>
   </div>
-  <div class="start-imgs" aria-hidden="true">{deco(r, "orange", "s-orange")}{deco(r, "mint", "s-mint")}{''.join(f'<img src="images/{next(p for p in self.p if p["id"]==i)["imgfile"]}" alt="">' for i in [28, 27, 37, 51])}</div>
+  <div class="start-imgs" aria-hidden="true">{deco(r, "orange", "s-orange")}{deco(r, "mint", "s-mint")}{''.join(f'<img src="images/{byid[i]["imgfile"]}" alt="">' for i in [28, 27, 37, 51])}</div>
 </div></section>
 
 <section class="wrap block">
@@ -565,6 +709,20 @@ class Site:
   <p class="lead">Подбрах ги така, че да работят добре заедно. Можете да ги поръчате наведнъж с моя линк.</p>
   <div class="bundles">{''.join(self.bundle(b, r) for b in BUNDLES[:2])}</div>
 </section>
+
+<section class="member"><div class="wrap member-in">
+  <div class="member-txt">
+    <p class="script">пазарувайте с мен</p>
+    <h2>Цена за членове и подаръци за редовни поръчки</h2>
+    <p>Като член на dōTERRA плащате по-ниска цена от тази на дребно, а с програмата за лоялност трупате точки за безплатни продукти. Няма задължение да продавате. Ще ви помогна с регистрацията и първата поръчка.</p>
+  </div>
+  <ul class="member-list">
+    <li>{ICONS["tag"]}<b>По-ниска цена</b><span>за всички продукти</span></li>
+    <li>{ICONS["gift"]}<b>Точки и подаръци</b><span>при редовни поръчки</span></li>
+    <li>{ICONS["heart"]}<b>Лична помощ</b><span>от мен, преди и след покупката</span></li>
+  </ul>
+  <div class="actions"><a class="btn" href="stani-chlen.html#chlenstvo">Как да стана член</a><a class="btn ghost" href="kontakti.html#pitane">Попитайте ме</a></div>
+</div></section>
 
 <section class="wrap block">
   <h2>Какво казват клиентите</h2>
@@ -788,6 +946,7 @@ class Site:
       {f'<p class="touch-link">Има и рол-он версия: <a href="{r}produkti/{p["touch"]["slug"]}.html">{esc(p["touch"]["dname"])} Touch</a></p>' if p["touch"] else ''}
       <dl class="facts">{facts_h}</dl>
       <div class="buy-box">
+        <div class="bb-me">{self.portrait_html(r, "bb-photo")}<span><b>Поръчвате с {esc(CONFIG["name"])}</b><small>независим консултант на dōTERRA</small></span>{self.socials(r, "bb-soc")}</div>
         <div class="actions">{shop}<a class="btn ghost" href="{order_q}">Попитай за продукта</a></div>
         <p>Поръчката става в официалния онлайн магазин на dōTERRA. Като пазарувате с моя линк, оставате мой клиент и съм насреща със съвети след покупката.
         Като член плащате по-ниска цена: <a href="{r}stani-chlen.html#chlenstvo">как става</a>.</p>
@@ -833,6 +992,9 @@ class Site:
     <li>Да ви дам идеи и рецепти за безопасна ежедневна употреба.</li>
   </ul>
   <div class="actions">{self.viber_btn("")}<a class="btn ghost" href="kontakti.html">Други начини за връзка</a></div>
+  <h2>Последвайте ме</h2>
+  <p>Във Facebook и Instagram споделям идеи, рецепти и промоциите на месеца.</p>
+  {self.socials("", "big-soc", labels=True)}
   <h2>Моменти от моя ден</h2>
   <div class="gallery"><span class="ph">снимка 1</span><span class="ph">снимка 2</span><span class="ph">снимка 3</span></div>
   <h2>Какво казват клиентите</h2>
